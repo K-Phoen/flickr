@@ -53,7 +53,32 @@ class ApiFactory
      *
      * @return \SimpleXMLElement
      */
+    public function callAnonymous($service = null, array $parameters = array(), $endpoint = null)
+    {
+        return $this->doCall($service, $parameters, $endpoint, false);
+    }
+
+    /**
+     * @param string $service    service
+     * @param array  $parameters parameters
+     * @param string $endpoint   endpoint
+     *
+     * @return \SimpleXMLElement
+     */
     public function call($service = null, array $parameters = array(), $endpoint = null)
+    {
+        return $this->doCall($service, $parameters, $endpoint, true);
+    }
+
+    /**
+     * @param string $service       service
+     * @param array  $parameters    parameters
+     * @param string $endpoint      endpoint
+     * @param bool   $authenticate  use authentication
+     *
+     * @return \SimpleXMLElement
+     */
+    protected function doCall($service = null, array $parameters = array(), $endpoint = null, $authenticate = true)
     {
         if (null === $endpoint) {
             $endpoint = $this->metadata->getEndpoint();
@@ -75,7 +100,9 @@ class ApiFactory
 
         $parameters['api_sig'] = $this->buildSignature($parameters);
 
-        $this->addOAuthParameters($endpoint, $parameters);
+        if ($authenticate) {
+            $this->addOAuthParameters($endpoint, $parameters);
+        }
 
         return $this->http->post($endpoint, $parameters);
     }
